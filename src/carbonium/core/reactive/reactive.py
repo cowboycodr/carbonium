@@ -12,9 +12,15 @@ class Reactive(object):
             'change': []
         }
 
+        self.__history = [self.value]
+
     @property
     def name(self):
       return self.__name
+
+    @property
+    def history(self):
+        return self.__history
 
     @property
     def value(self):
@@ -22,6 +28,7 @@ class Reactive(object):
 
     @value.setter
     def value(self, new):
+        self.__history.append(self.__value)
         self.__value = new
 
         self.onchange()
