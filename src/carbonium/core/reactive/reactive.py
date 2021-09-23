@@ -1,46 +1,52 @@
 import traceback
 
-from carbonium.core import reactive
+class Reactive(object):
+    def __init__(self, value):
+        self.__value = value
 
-class Reactive:
-  def __init__(self, value) -> None:
-      # Reactive properties dependent on self
-      self._dependents = []
+        (filename, line, func, text) = traceback.extract_stack()[-2]
+        self.__name = text[:text.find('=')].strip()
 
-      (filename, line, func, text) = traceback.extract_stack()[-2]
-      self.__name = text[:text.find('=')].strip()
 
-      self.__value = value
+        self.__listeners = {
+            'change': []
+        }
 
-  def __update(self, value):
-    self.__value = value
+    @property
+    def name(self):
+      return self.__name
 
-    for dependent in self._dependents:
-      dependent.react(self.name, self)
+    @property
+    def value(self):
+        return self.__value
 
-  def update(self, instance):
-    self.__dependents[instance.name] = instance.value
+    @value.setter
+    def value(self, new):
+        self.__value = new
 
-  def _depend(self, instance):
-    instance._dependents.append(instance)
+        self.onchange()
 
-  def react(self):
-    ''' Updates affected branches '''
-    new = self.value
+    def add_event_listener(self, event, callback):
+        self.__listeners[event].append(callback)
 
-    print(new)
+    def onchange(self):
+        if len(self.__listeners) > 0:
+            for listener in self.__listeners['change']:
+                listener(self.value)
 
-  @property
-  def name(self):
-    return self.__name
+    def when(self, target, callback):
+        def inner(new):
+            if (new == target):
+                callback()
 
-  @property
-  def value(self):
-    if isinstance(self.__value, function):
-      self.value = function()
+        self.add_event_listener('change', inner)
 
-    return self.__value
+if __name__ == '__main__':
+    value = Reactive(0)
 
-  @value.setter
-  def value(self, new):
-    self.__update(new)
+    def callback():
+        print('The value is 1')
+
+    value.when(1, callback)
+
+    value.value = 1
