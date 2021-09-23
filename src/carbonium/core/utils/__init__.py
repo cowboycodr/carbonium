@@ -1,0 +1,1 @@
+from mdict import ModifiedDictionary
